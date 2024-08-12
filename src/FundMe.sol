@@ -19,6 +19,12 @@ error FundMe__RetreiveError(uint256);
 error FundMe__GoalAmountNotMet(uint256, uint256);
 
 abstract contract FundMe is PriceFeed {
+    event FundMe__Funded(
+        address indexed funderAddress,
+        uint256 indexed fundedAmount
+    );
+    event FundMe__DonationsCollected(uint256 indexed amount);
+
     enum Status {
         Open,
         Closed,
@@ -38,7 +44,7 @@ abstract contract FundMe is PriceFeed {
         i_minimumFund = _minimumFund;
     }
 
-    receive() external payable {}
+    receive() external payable virtual {}
 
     fallback() external payable {}
 
@@ -59,6 +65,8 @@ abstract contract FundMe is PriceFeed {
                 msg.value
             );
         }
+
+        emit FundMe__Funded(msg.sender, msg.value);
 
         if (s_fundersMapping[msg.sender] == 0) {
             s_funders.push(msg.sender);

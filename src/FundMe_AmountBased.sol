@@ -40,6 +40,7 @@ contract FundMe_AmountBased is FundMe, Ownable {
             revert FundMe__RetreiveError(contractBalance);
         }
 
+        emit FundMe__DonationsCollected(contractBalance);
         setStatus(Status.Finished);
     }
 }

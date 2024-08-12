@@ -10,7 +10,7 @@ error FundMe_TimeBased__RetreiveError(uint256);
 error FundMe_TimeBased__PerformUpkeepError(uint256, uint256, uint256, uint256);
 
 contract FundMe_TimeBased is FundMe, Ownable {
-    // time repesented in seconds
+    //@dev: Time repesented in seconds
     uint256 private immutable i_timeLimit;
     uint256 private immutable i_timestamp;
 
@@ -34,6 +34,7 @@ contract FundMe_TimeBased is FundMe, Ownable {
         return upkeepNeeded;
     }
 
+    // @dev: collect the contract balance
     function performUpkeep(
         bytes calldata /* performData */
     ) public payable override onlyOwner {
@@ -60,6 +61,7 @@ contract FundMe_TimeBased is FundMe, Ownable {
             revert FundMe_TimeBased__RetreiveError(contractBalance);
         }
 
+        emit FundMe__DonationsCollected(contractBalance);
         setStatus(Status.Finished);
     }
 }

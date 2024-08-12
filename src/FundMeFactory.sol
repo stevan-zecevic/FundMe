@@ -8,15 +8,16 @@ import {FundMe_TimeBased} from "contracts/FundMe_TimeBased.sol";
 contract FundMeFactory {
     address[] private s_fundations;
 
+    // @dev: Time limited contracts has a priority over the amount based one
     function createFundation(
         uint256 _timeLimit,
         uint256 _goalAmount,
         uint256 _minimumFund,
         address _priceFeedAddress
     ) public {
-        if (_goalAmount != 0) {
-            FundMe_AmountBased newFundation = new FundMe_AmountBased(
-                _goalAmount,
+        if (_timeLimit != 0) {
+            FundMe_TimeBased newFundation = new FundMe_TimeBased(
+                _timeLimit,
                 _minimumFund,
                 _priceFeedAddress
             );
@@ -24,9 +25,9 @@ contract FundMeFactory {
             s_fundations.push(address(newFundation));
         }
 
-        if (_timeLimit != 0) {
-            FundMe_TimeBased newFundation = new FundMe_TimeBased(
-                _timeLimit,
+        if (_goalAmount != 0) {
+            FundMe_AmountBased newFundation = new FundMe_AmountBased(
+                _goalAmount,
                 _minimumFund,
                 _priceFeedAddress
             );
