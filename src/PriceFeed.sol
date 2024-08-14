@@ -16,18 +16,18 @@ contract PriceFeed {
     }
 
     // CHECK: Maybe this can remain uint8 instead of uint256
-    function getDecimals() internal view returns (uint256) {
+    function getDecimals() internal view returns (uint8) {
         uint8 decimals = dataFeed.decimals();
 
-        return uint256(decimals);
+        return decimals;
     }
 
     function convertToUSD(uint256 _value) internal view returns (uint256) {
-        uint256 decimals = getDecimals();
+        uint8 decimals = getDecimals();
         uint256 answer = getLatestAnswer();
 
-        uint256 priceOfWei = answer / 10 ** decimals;
+        uint256 scaledAnswer = answer * 10 ** (18 - decimals); // Scaled to wei format
 
-        return (priceOfWei * _value) * 10 ** 18;
+        return (scaledAnswer * _value) / 10 ** 18;
     }
 }
