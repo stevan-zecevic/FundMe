@@ -15,14 +15,13 @@ contract PriceFeed {
         return uint256(answer);
     }
 
-    // CHECK: Maybe this can remain uint8 instead of uint256
     function getDecimals() internal view returns (uint8) {
         uint8 decimals = dataFeed.decimals();
 
         return decimals;
     }
 
-    function convertToUSD(uint256 _value) internal view returns (uint256) {
+    function convertToUSD(uint256 _value) public view returns (uint256) {
         uint8 decimals = getDecimals();
         uint256 answer = getLatestAnswer();
 

@@ -2,11 +2,10 @@
 
 pragma solidity 0.8.7;
 
-import {FundMe} from "contracts/FundMe.sol";
+import {FundMe, FundMe__RetreiveError} from "contracts/FundMe.sol";
 import {Ownable} from "contracts/Ownable.sol";
 import {AutomationCompatibleInterface} from "chainlink-toolkit/lib/chainlink-brownie-contracts/contracts/src/v0.8/interfaces/AutomationCompatibleInterface.sol";
 
-error FundMe_TimeBased__RetreiveError(uint256);
 error FundMe_TimeBased__PerformUpkeepError(uint256, uint256, uint256, uint256);
 
 contract FundMe_TimeBased is FundMe, Ownable {
@@ -21,6 +20,10 @@ contract FundMe_TimeBased is FundMe, Ownable {
     ) FundMe(_minimumFund, _priceFeedAddress) {
         i_timeLimit = _timeLimit;
         i_timestamp = block.timestamp;
+    }
+
+    receive() external payable override {
+        fund();
     }
 
     function checkUpkeep(
@@ -55,13 +58,21 @@ contract FundMe_TimeBased is FundMe, Ownable {
 
         uint256 contractBalance = address(this).balance;
 
-        (bool sent, ) = i_owner.call{value: contractBalance}("");
+        (bool sent, ) = s_owner.call{value: contractBalance}("");
 
         if (!sent) {
-            revert FundMe_TimeBased__RetreiveError(contractBalance);
+            revert FundMe__RetreiveError(contractBalance);
         }
 
         emit FundMe__DonationsCollected(contractBalance);
         setStatus(Status.Finished);
+    }
+
+    function getTimeLimit() public view returns (uint256) {
+        return i_timeLimit;
+    }
+
+    function getTimeStamp() public view returns (uint256) {
+        return i_timestamp;
     }
 }

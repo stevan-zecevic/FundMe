@@ -2,21 +2,14 @@
 
 pragma solidity 0.8.7;
 
-/*
-  1. Users can donate specific amount to their desired fund raiser
-  2. Add option to add fund minimum
-  3. Owner of contract can set goal to be time based or amount based
-  4. Every fund contract stores donors
-  5. Every fund has a status, is it in progress or completed 
-  6. After time limit or goal amount has been met owner can claim their funds
- */
-
 import {PriceFeed} from "contracts/PriceFeed.sol";
 import {Ownable} from "contracts/Ownable.sol";
+import {console2} from "forge-std/console2.sol";
 
 error FundMe__FundRequirementNotMet(address, uint256, uint256, uint256);
 error FundMe__RetreiveError(uint256);
 error FundMe__GoalAmountNotMet(uint256, uint256);
+error FundMe__Fallback(bytes message);
 
 abstract contract FundMe is PriceFeed {
     event FundMe__Funded(
@@ -35,7 +28,7 @@ abstract contract FundMe is PriceFeed {
     mapping(address => uint256) private s_fundersMapping;
     Status private s_status = Status.Open;
 
-    uint256 immutable i_minimumFund;
+    uint256 private immutable i_minimumFund;
 
     constructor(
         uint256 _minimumFund,
@@ -46,7 +39,9 @@ abstract contract FundMe is PriceFeed {
 
     receive() external payable virtual {}
 
-    fallback() external payable {}
+    fallback() external payable {
+        revert FundMe__Fallback(msg.data);
+    }
 
     function performUpkeep(
         bytes calldata /* performData */
@@ -66,13 +61,31 @@ abstract contract FundMe is PriceFeed {
             );
         }
 
-        emit FundMe__Funded(msg.sender, msg.value);
+        emit FundMe__Funded(msg.sender, fundedValueInUSD);
 
         if (s_fundersMapping[msg.sender] == 0) {
             s_funders.push(msg.sender);
         }
 
         s_fundersMapping[msg.sender] += msg.value;
+    }
+
+    function getMinimumFund() public view returns (uint256) {
+        return i_minimumFund;
+    }
+
+    function getFunder(uint256 _index) public view returns (address) {
+        return s_funders[_index];
+    }
+
+    function getNumberOfFunders() public view returns (uint256) {
+        return s_funders.length;
+    }
+
+    function getFundersAmount(
+        address _funderAddress
+    ) public view returns (uint256) {
+        return s_fundersMapping[_funderAddress];
     }
 
     function getStatus() public view returns (Status) {

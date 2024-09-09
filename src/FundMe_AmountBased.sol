@@ -2,15 +2,11 @@
 
 pragma solidity 0.8.7;
 
-import {FundMe} from "contracts/FundMe.sol";
+import {FundMe, FundMe__FundRequirementNotMet, FundMe__RetreiveError, FundMe__GoalAmountNotMet} from "contracts/FundMe.sol";
 import {Ownable} from "contracts/Ownable.sol";
 
-error FundMe__FundRequirementNotMet(address, uint256, uint256, uint256);
-error FundMe__RetreiveError(uint256);
-error FundMe__GoalAmountNotMet(uint256, uint256);
-
 contract FundMe_AmountBased is FundMe, Ownable {
-    uint256 immutable i_goalAmount;
+    uint256 private immutable i_goalAmount;
 
     constructor(
         uint256 _goalAmount,
@@ -30,11 +26,11 @@ contract FundMe_AmountBased is FundMe, Ownable {
     ) public payable override onlyOwner {
         uint256 contractBalance = address(this).balance;
 
-        if ((i_goalAmount != 0 && contractBalance == i_goalAmount)) {
+        if ((i_goalAmount != 0 && contractBalance < i_goalAmount)) {
             revert FundMe__GoalAmountNotMet(contractBalance, i_goalAmount);
         }
 
-        (bool sent, ) = i_owner.call{value: contractBalance}("");
+        (bool sent, ) = s_owner.call{value: contractBalance}("");
 
         if (!sent) {
             revert FundMe__RetreiveError(contractBalance);
@@ -42,5 +38,9 @@ contract FundMe_AmountBased is FundMe, Ownable {
 
         emit FundMe__DonationsCollected(contractBalance);
         setStatus(Status.Finished);
+    }
+
+    function getGoalAmount() public view returns (uint256) {
+        return i_goalAmount;
     }
 }

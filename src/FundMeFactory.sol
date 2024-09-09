@@ -14,7 +14,9 @@ contract FundMeFactory {
         uint256 _goalAmount,
         uint256 _minimumFund,
         address _priceFeedAddress
-    ) public {
+    ) public returns (address) {
+        address fundationAddress;
+
         if (_timeLimit != 0) {
             FundMe_TimeBased newFundation = new FundMe_TimeBased(
                 _timeLimit,
@@ -23,6 +25,8 @@ contract FundMeFactory {
             );
 
             s_fundations.push(address(newFundation));
+
+            fundationAddress = address(newFundation);
         }
 
         if (_goalAmount != 0) {
@@ -33,7 +37,11 @@ contract FundMeFactory {
             );
 
             s_fundations.push(address(newFundation));
+
+            fundationAddress = address(newFundation);
         }
+
+        return fundationAddress;
     }
 
     function getFundation(uint256 _index) public view returns (address) {
