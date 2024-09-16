@@ -49,6 +49,7 @@ abstract contract FundMe is PriceFeed {
 
     function fund() public payable {
         uint256 fundedValueInUSD = convertToUSD(msg.value);
+
         bool isMinimumFundNotMet = i_minimumFund != 0 &&
             fundedValueInUSD < i_minimumFund * 10 ** 18;
 

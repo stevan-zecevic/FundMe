@@ -190,7 +190,7 @@ contract FundMe_TimeBasedTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(
                 FundMe__RetreiveError.selector,
-                address(s_fundMe).balance
+                fundedAmountInUSD
             )
         );
 
@@ -206,6 +206,7 @@ contract FundMe_TimeBasedTest is Test {
         uint256 timeStamp = s_fundMe.getTimeStamp();
 
         uint256 fundedAmount = 1 ether;
+        uint256 fundedAmountInUSD = s_fundMe.convertToUSD(fundedAmount);
 
         s_fundMe.fund{value: fundedAmount}();
 
@@ -215,7 +216,7 @@ contract FundMe_TimeBasedTest is Test {
         vm.warp(timeStamp + timeLimit + 1);
 
         vm.expectEmit(true, false, false, false);
-        emit FundMe__DonationsCollected(fundedAmount);
+        emit FundMe__DonationsCollected(fundedAmountInUSD);
 
         s_fundMe.performUpkeep("");
 

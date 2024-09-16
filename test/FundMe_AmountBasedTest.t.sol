@@ -163,7 +163,7 @@ contract FundMe_AmountBasedTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(
                 FundMe__RetreiveError.selector,
-                address(s_fundMe).balance
+                fundedAmountInUSD
             )
         );
 
@@ -187,7 +187,7 @@ contract FundMe_AmountBasedTest is Test {
 
         vm.expectEmit(true, false, false, false);
 
-        emit FundMe__DonationsCollected(fundedAmount);
+        emit FundMe__DonationsCollected(fundedAmountInUSD);
 
         s_fundMe.performUpkeep("");
 

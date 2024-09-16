@@ -3,7 +3,7 @@
 pragma solidity 0.8.7;
 
 import {Test} from "forge-std/Test.sol";
-import {FundMeFactory} from "contracts/FundMeFactory.sol";
+import {FundMeFactory, FundMeFactory__IndexOutOfBounds} from "contracts/FundMeFactory.sol";
 import {FundMe_AmountBased} from "contracts/FundMe_AmountBased.sol";
 import {DeployFundMeFactory} from "script/DeployFundMeFactory.s.sol";
 import {NetworkConfig} from "script/NetworkConfig.s.sol";
@@ -23,7 +23,9 @@ contract FundMeFactoryTest is Test {
     }
 
     function testFactoryInitialValues() public {
-        vm.expectRevert(stdError.indexOOBError);
+        vm.expectRevert(
+            abi.encodeWithSelector(FundMeFactory__IndexOutOfBounds.selector)
+        );
         factory.getFundation(0);
     }
 

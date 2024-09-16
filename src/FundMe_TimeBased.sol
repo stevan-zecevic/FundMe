@@ -9,10 +9,15 @@ import {AutomationCompatibleInterface} from "chainlink-toolkit/lib/chainlink-bro
 error FundMe_TimeBased__PerformUpkeepError(uint256, uint256, uint256, uint256);
 
 contract FundMe_TimeBased is FundMe, Ownable {
-    //@dev: Time repesented in seconds
+    /// @notice The time limit for the fundation, in seconds
+    /// @notice The timestamp when the fundation started, in seconds
     uint256 private immutable i_timeLimit;
     uint256 private immutable i_timestamp;
 
+    /// @notice Creates a new fundation based on the given parameters
+    /// @param _timeLimit The time limit for the fundation, in seconds
+    /// @param _minimumFund The minimum fund amount, in USD
+    /// @param _priceFeedAddress The address of the price feed contract
     constructor(
         uint256 _timeLimit,
         uint256 _minimumFund,
@@ -22,10 +27,14 @@ contract FundMe_TimeBased is FundMe, Ownable {
         i_timestamp = block.timestamp;
     }
 
+    /// @notice Receives funds from funders
+    /// @dev This function is called when eth is sent to the contract
     receive() external payable override {
         fund();
     }
 
+    /// @notice Checks if the fundation is ready to be collected
+    /// @return upkeepNeeded Whether the fundation is ready to be collected
     function checkUpkeep(
         bytes calldata /* checkData */
     )
@@ -37,7 +46,8 @@ contract FundMe_TimeBased is FundMe, Ownable {
         return upkeepNeeded;
     }
 
-    // @dev: collect the contract balance
+    /// @notice Performs upkeep on the fundation and collects the funds
+    /// @dev This function is called when time limit is reached
     function performUpkeep(
         bytes calldata /* performData */
     ) public payable override onlyOwner {
@@ -57,14 +67,15 @@ contract FundMe_TimeBased is FundMe, Ownable {
         }
 
         uint256 contractBalance = address(this).balance;
+        uint256 contractBalanceInUSD = convertToUSD(contractBalance);
 
         (bool sent, ) = s_owner.call{value: contractBalance}("");
 
         if (!sent) {
-            revert FundMe__RetreiveError(contractBalance);
+            revert FundMe__RetreiveError(contractBalanceInUSD);
         }
 
-        emit FundMe__DonationsCollected(contractBalance);
+        emit FundMe__DonationsCollected(contractBalanceInUSD);
         setStatus(Status.Finished);
     }
 
