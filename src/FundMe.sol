@@ -5,12 +5,12 @@ pragma solidity 0.8.7;
 import {PriceFeed} from "contracts/PriceFeed.sol";
 import {Ownable} from "contracts/Ownable.sol";
 import {console2} from "forge-std/console2.sol";
+import {Ownable} from "contracts/Ownable.sol";
 
 error FundMe__FundRequirementNotMet(address, uint256, uint256, uint256);
 error FundMe__RetreiveError(uint256);
 error FundMe__GoalAmountNotMet(uint256, uint256);
 error FundMe__Fallback(bytes message);
-import {Ownable} from "contracts/Ownable.sol";
 
 /// @title FundMe
 /// @notice This abstract contract is used to create fundations and collect funds from funders

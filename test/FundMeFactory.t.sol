@@ -32,6 +32,11 @@ contract FundMeFactoryTest is Test {
         assertEq(factory.getFundationCount(), 0);
     }
 
+    function testGetFundations() public view {
+        address[] memory fundations = factory.getFundations();
+        assertEq(fundations.length, 0);
+    }
+
     function testFactoryInitialValues() public {
         vm.expectRevert(
             abi.encodeWithSelector(FundMeFactory__IndexOutOfBounds.selector)
@@ -57,6 +62,8 @@ contract FundMeFactoryTest is Test {
         address fundation = factory.getFundation(0);
         uint256 fundationCount = factory.getFundationCount();
 
+        address[] memory fundations = factory.getFundations();
+        assertEq(fundations[0], amountBasedFundation);
         assertEq(fundationCount, 1);
         assertEq(fundation, amountBasedFundation);
     }
@@ -76,6 +83,8 @@ contract FundMeFactoryTest is Test {
             priceFeedAddress
         );
 
+        address[] memory fundations = factory.getFundations();
+        assertEq(fundations[0], timeBasedFundation);
         address fundation = factory.getFundation(0);
         uint256 fundationCount = factory.getFundationCount();
 

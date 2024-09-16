@@ -19,7 +19,6 @@ contract FundMeFactory {
     /// @param _minimumFund The minimum fund amount, in USD
     /// @param _priceFeedAddress The address of the price feed contract
     /// @return fundationAddress The address of the newly created fundation
-
     function createFundation(
         bytes32 _name,
         bytes32 _description,
@@ -69,6 +68,12 @@ contract FundMeFactory {
         }
 
         return s_fundations[_index];
+    }
+
+    /// @notice Retrieves all the fundations created
+    /// @return The addresses of all the fundations
+    function getFundations() public view returns (address[] memory) {
+        return s_fundations;
     }
 
     /// @notice Retrieves the total number of fundations created
