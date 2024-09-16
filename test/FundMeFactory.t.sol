@@ -14,12 +14,22 @@ contract FundMeFactoryTest is Test {
 
     FundMeFactory internal factory;
 
+    bytes32 internal constant NAME = "Amount Based Fundation";
+    bytes32 internal constant AMOUNT_DESCRIPTION =
+        "This is amount based foundation";
+    bytes32 internal constant TIME_DESCRIPTION =
+        "This is time based foundation";
+
     function setUp() external {
         NetworkConfig networkConfig = new NetworkConfig();
         s_networkConfig = networkConfig.getConfig();
 
         DeployFundMeFactory deployer = new DeployFundMeFactory();
         factory = deployer.deploy();
+    }
+
+    function testNumberOfFundations() public view {
+        assertEq(factory.getFundationCount(), 0);
     }
 
     function testFactoryInitialValues() public {
@@ -36,6 +46,8 @@ contract FundMeFactoryTest is Test {
         address priceFeedAddress = s_networkConfig.priceFeedAddress;
 
         address amountBasedFundation = factory.createFundation(
+            NAME,
+            AMOUNT_DESCRIPTION,
             TIME_LIMIT,
             GOAL_AMOUNT,
             MINIMUM_FUND_AMOUNT,
@@ -43,7 +55,9 @@ contract FundMeFactoryTest is Test {
         );
 
         address fundation = factory.getFundation(0);
+        uint256 fundationCount = factory.getFundationCount();
 
+        assertEq(fundationCount, 1);
         assertEq(fundation, amountBasedFundation);
     }
 
@@ -54,6 +68,8 @@ contract FundMeFactoryTest is Test {
         address priceFeedAddress = s_networkConfig.priceFeedAddress;
 
         address timeBasedFundation = factory.createFundation(
+            NAME,
+            TIME_DESCRIPTION,
             TIME_LIMIT,
             GOAL_AMOUNT,
             MINIMUM_FUND_AMOUNT,
@@ -61,7 +77,9 @@ contract FundMeFactoryTest is Test {
         );
 
         address fundation = factory.getFundation(0);
+        uint256 fundationCount = factory.getFundationCount();
 
+        assertEq(fundationCount, 1);
         assertEq(fundation, timeBasedFundation);
     }
 }

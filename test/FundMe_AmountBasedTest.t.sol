@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.7;
 
-import {FundMe_AmountBased} from "contracts/FundMe_AmountBased.sol";
+import {FundMe_AmountBased, FundMe_AmountBased__PerformUpkeepError} from "contracts/FundMe_AmountBased.sol";
 import {FundMe, FundMe__GoalAmountNotMet, FundMe__RetreiveError, FundMe__FundRequirementNotMet, FundMe__Fallback} from "contracts/FundMe.sol";
 import {Ownable, Ownable__NotOwner} from "contracts/Ownable.sol";
 import {MockV3Aggregator} from "test/mock/MockV3Aggregator.t.sol";
@@ -18,6 +18,9 @@ contract FundMe_AmountBasedTest is Test {
     );
     event FundMe__DonationsCollected(uint256 indexed amount);
 
+    bytes32 internal constant NAME = "Amount Based Fundation";
+    bytes32 internal DESCRIPTION = "This is amount based foundation";
+
     FundMe_AmountBased s_fundMe;
     NetworkConfig.Config internal s_networkConfig;
 
@@ -27,6 +30,8 @@ contract FundMe_AmountBasedTest is Test {
 
         vm.startBroadcast();
         s_fundMe = new FundMe_AmountBased(
+            NAME,
+            DESCRIPTION,
             1 ether,
             1,
             s_networkConfig.priceFeedAddress
@@ -41,7 +46,14 @@ contract FundMe_AmountBasedTest is Test {
         uint256 firstFunderAmount = s_fundMe.getFundersAmount(msg.sender);
         FundMe.Status fundMeStatus = s_fundMe.getStatus();
         uint256 minimumFund = s_fundMe.getMinimumFund();
+        string memory storedName = s_fundMe.getName();
+        string memory storedDescription = s_fundMe.getDescription();
 
+        string memory name = string(abi.encodePacked(NAME));
+        string memory description = string(abi.encodePacked(DESCRIPTION));
+
+        assertEq(name, storedName);
+        assertEq(description, storedDescription);
         assertEq(goalAmount, 1 ether);
         assertEq(owner, msg.sender);
         assertEq(numberOfFunders, 0);
@@ -86,13 +98,22 @@ contract FundMe_AmountBasedTest is Test {
     }
 
     function testSetingStatus() public {
+        address owner = s_fundMe.getOwner();
         FundMe.Status currentStatus = s_fundMe.getStatus();
 
+        vm.prank(owner);
         s_fundMe.setStatus(FundMe.Status.Closed);
         FundMe.Status newStatus = s_fundMe.getStatus();
 
         assertNotEq(uint256(currentStatus), uint256(newStatus));
         assertEq(uint256(newStatus), uint256(FundMe.Status.Closed));
+    }
+
+    function testSettingStatusNotOwner() public {
+        vm.expectRevert(
+            abi.encodeWithSelector(Ownable__NotOwner.selector, address(this))
+        );
+        s_fundMe.setStatus(FundMe.Status.Closed);
     }
 
     function testFallbackFunction() public {
@@ -111,31 +132,73 @@ contract FundMe_AmountBasedTest is Test {
         s_fundMe.performUpkeep("");
     }
 
-    function testRetreiveWhenGoalIsNoTMet() public {
-        uint256 goalAmount = s_fundMe.getGoalAmount();
+    function testRetrieveIfContractStatusIsClosed() public {
         address owner = s_fundMe.getOwner();
+        uint256 goalAmount = s_fundMe.getGoalAmount();
+        uint256 fundedAmount = 1 ether;
+        uint256 fundedAmountInUSD = s_fundMe.convertToUSD(fundedAmount);
+
+        s_fundMe.fund{value: fundedAmount}();
+
+        assertEq(address(s_fundMe).balance, fundedAmount);
+
+        uint256 newStatus = 1;
+
+        vm.prank(owner);
+        s_fundMe.setStatus(FundMe.Status(newStatus));
 
         vm.prank(owner);
         vm.expectRevert(
             abi.encodeWithSelector(
-                FundMe__GoalAmountNotMet.selector,
-                address(s_fundMe).balance,
+                FundMe_AmountBased__PerformUpkeepError.selector,
+                newStatus,
+                fundedAmountInUSD,
                 goalAmount
             )
         );
-
         s_fundMe.performUpkeep("");
     }
 
-    function testRetrieveIfFundsAmountNotMet() public {
+    function testRetrieveIfContractStatusIsFinished() public {
         address owner = s_fundMe.getOwner();
         uint256 goalAmount = s_fundMe.getGoalAmount();
+        uint256 fundedAmount = 1 ether;
+        uint256 fundedAmountInUSD = s_fundMe.convertToUSD(fundedAmount);
+
+        s_fundMe.fund{value: fundedAmount}();
+
+        assertEq(address(s_fundMe).balance, fundedAmount);
+
+        uint256 newStatus = 2;
+
+        vm.prank(owner);
+        s_fundMe.setStatus(FundMe.Status(newStatus));
 
         vm.prank(owner);
         vm.expectRevert(
             abi.encodeWithSelector(
-                FundMe__GoalAmountNotMet.selector,
-                address(s_fundMe).balance,
+                FundMe_AmountBased__PerformUpkeepError.selector,
+                newStatus,
+                fundedAmountInUSD,
+                goalAmount
+            )
+        );
+        s_fundMe.performUpkeep("");
+    }
+
+    function testRetreiveWhenGoalIsNotMet() public {
+        address owner = s_fundMe.getOwner();
+        uint256 goalAmount = s_fundMe.getGoalAmount();
+        uint256 contractBalance = address(s_fundMe).balance;
+        uint256 contractBalanceInUSD = s_fundMe.convertToUSD(contractBalance);
+        FundMe.Status status = s_fundMe.getStatus();
+
+        vm.prank(owner);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                FundMe_AmountBased__PerformUpkeepError.selector,
+                uint256(status),
+                contractBalanceInUSD,
                 goalAmount
             )
         );

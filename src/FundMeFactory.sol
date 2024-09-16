@@ -12,6 +12,8 @@ contract FundMeFactory {
 
     /// @notice Creates a new fundation based on the given parameters
     /// @dev Only one type of fundation (time-based or amount-based) can be created per call
+    /// @param _name The name of the fundation
+    /// @param _description The description of the fundation
     /// @param _timeLimit The time limit for a time-based fundation (0 for amount-based)
     /// @param _goalAmount The goal amount for an amount-based fundation (0 for time-based), in USD
     /// @param _minimumFund The minimum fund amount, in USD
@@ -19,6 +21,8 @@ contract FundMeFactory {
     /// @return fundationAddress The address of the newly created fundation
 
     function createFundation(
+        bytes32 _name,
+        bytes32 _description,
         uint256 _timeLimit,
         uint256 _goalAmount,
         uint256 _minimumFund,
@@ -28,6 +32,8 @@ contract FundMeFactory {
 
         if (_timeLimit != 0) {
             FundMe_TimeBased newFundation = new FundMe_TimeBased(
+                _name,
+                _description,
                 _timeLimit,
                 _minimumFund,
                 _priceFeedAddress
@@ -38,6 +44,8 @@ contract FundMeFactory {
             fundationAddress = address(newFundation);
         } else if (_goalAmount != 0) {
             FundMe_AmountBased newFundation = new FundMe_AmountBased(
+                _name,
+                _description,
                 _goalAmount,
                 _minimumFund,
                 _priceFeedAddress
