@@ -16,6 +16,8 @@ contract FundMe_TimeBasedTest is Test {
     );
     event FundMe__DonationsCollected(uint256 indexed amount);
 
+    uint256 internal s_initialContractBalance;
+
     bytes32 internal constant NAME = "Time Based Fundation";
     bytes32 internal constant DESCRIPTION = "This is time based foundation";
 
@@ -34,7 +36,14 @@ contract FundMe_TimeBasedTest is Test {
             1, // USD
             s_networkConfig.priceFeedAddress
         );
+        console.log("Contract address: %s", address(s_fundMe));
+        console.log(
+            "Contract balance after deployment: %s",
+            address(s_fundMe).balance
+        );
         vm.stopBroadcast();
+
+        s_initialContractBalance = address(s_fundMe).balance;
     }
 
     function testInitialContracValues() public view {
@@ -84,7 +93,10 @@ contract FundMe_TimeBasedTest is Test {
         assertEq(funder, address(this));
         assertEq(numberOfFunders, 1);
         assertEq(amount, fundedAmount);
-        assertEq(address(s_fundMe).balance, fundedAmount);
+        assertEq(
+            address(s_fundMe).balance,
+            fundedAmount + s_initialContractBalance
+        );
     }
 
     function testSetingStatus() public {
@@ -136,6 +148,11 @@ contract FundMe_TimeBasedTest is Test {
     }
 
     function testRetrieveIfContractStatusIsClosed() public {
+        console.log(
+            "Contract balance before funding: %s",
+            address(s_fundMe).balance
+        );
+
         address owner = s_fundMe.getOwner();
         uint256 timeLimit = s_fundMe.getTimeLimit();
         uint256 timeStamp = s_fundMe.getTimeStamp();
@@ -143,7 +160,10 @@ contract FundMe_TimeBasedTest is Test {
 
         s_fundMe.fund{value: fundedAmount}();
 
-        assertEq(address(s_fundMe).balance, fundedAmount);
+        assertEq(
+            address(s_fundMe).balance,
+            fundedAmount + s_initialContractBalance
+        );
 
         uint256 newStatus = 1;
 
@@ -171,7 +191,10 @@ contract FundMe_TimeBasedTest is Test {
 
         s_fundMe.fund{value: fundedAmount}();
 
-        assertEq(address(s_fundMe).balance, fundedAmount);
+        assertEq(
+            address(s_fundMe).balance,
+            fundedAmount + s_initialContractBalance
+        );
 
         uint256 newStatus = 2;
 
@@ -227,6 +250,9 @@ contract FundMe_TimeBasedTest is Test {
         address owner = s_fundMe.getOwner();
         uint256 fundedAmount = 1 ether;
         uint256 fundedAmountInUSD = s_fundMe.convertToUSD(fundedAmount);
+        uint256 initialContractBalanceInUSD = s_fundMe.convertToUSD(
+            s_initialContractBalance
+        );
 
         vm.expectEmit(true, true, false, false);
 
@@ -245,7 +271,7 @@ contract FundMe_TimeBasedTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(
                 FundMe__RetreiveError.selector,
-                fundedAmountInUSD
+                fundedAmountInUSD + initialContractBalanceInUSD
             )
         );
 
@@ -262,22 +288,33 @@ contract FundMe_TimeBasedTest is Test {
 
         uint256 fundedAmount = 1 ether;
         uint256 fundedAmountInUSD = s_fundMe.convertToUSD(fundedAmount);
+        uint256 initialContractBalanceInUSD = s_fundMe.convertToUSD(
+            s_initialContractBalance
+        );
 
         s_fundMe.fund{value: fundedAmount}();
 
-        assertEq(address(s_fundMe).balance, fundedAmount);
+        assertEq(
+            address(s_fundMe).balance,
+            fundedAmount + s_initialContractBalance
+        );
 
         vm.prank(owner);
         vm.warp(timeStamp + timeLimit + 1);
 
         vm.expectEmit(true, false, false, false);
-        emit FundMe__DonationsCollected(fundedAmountInUSD);
+        emit FundMe__DonationsCollected(
+            fundedAmountInUSD + initialContractBalanceInUSD
+        );
 
         s_fundMe.performUpkeep("");
 
         FundMe.Status status = s_fundMe.getStatus();
 
-        assertEq(ownerOldBalance + fundedAmount, owner.balance);
+        assertEq(
+            ownerOldBalance + fundedAmount + s_initialContractBalance,
+            owner.balance
+        );
         assertEq(uint256(status), 2);
     }
 }

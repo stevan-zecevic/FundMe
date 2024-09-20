@@ -18,6 +18,11 @@ contract FundMe_AmountBasedTest is Test {
     );
     event FundMe__DonationsCollected(uint256 indexed amount);
 
+    uint256 constant GOAL_AMOUNT = 100; // 100 USD
+    uint256 constant MINIMUM_FUND = 1; // 1 USD
+
+    uint256 internal s_initialContractBalance;
+
     bytes32 internal constant NAME = "Amount Based Fundation";
     bytes32 internal DESCRIPTION = "This is amount based foundation";
 
@@ -32,11 +37,13 @@ contract FundMe_AmountBasedTest is Test {
         s_fundMe = new FundMe_AmountBased(
             NAME,
             DESCRIPTION,
-            1 ether,
-            1,
+            GOAL_AMOUNT,
+            MINIMUM_FUND,
             s_networkConfig.priceFeedAddress
         );
         vm.stopBroadcast();
+
+        s_initialContractBalance = address(s_fundMe).balance;
     }
 
     function testInitialContractValues() public view {
@@ -54,12 +61,12 @@ contract FundMe_AmountBasedTest is Test {
 
         assertEq(name, storedName);
         assertEq(description, storedDescription);
-        assertEq(goalAmount, 1 ether);
+        assertEq(goalAmount, GOAL_AMOUNT);
         assertEq(owner, msg.sender);
         assertEq(numberOfFunders, 0);
         assertEq(firstFunderAmount, 0);
         assertEq(uint256(fundMeStatus), 0);
-        assertEq(minimumFund, 1);
+        assertEq(minimumFund, MINIMUM_FUND);
     }
 
     function testFundZeroAmount() public {
@@ -94,7 +101,10 @@ contract FundMe_AmountBasedTest is Test {
         assertEq(funder, address(this));
         assertEq(numberOfFunders, 1);
         assertEq(amount, fundedAmount);
-        assertEq(address(s_fundMe).balance, fundedAmount);
+        assertEq(
+            address(s_fundMe).balance,
+            fundedAmount + s_initialContractBalance
+        );
     }
 
     function testSetingStatus() public {
@@ -137,10 +147,16 @@ contract FundMe_AmountBasedTest is Test {
         uint256 goalAmount = s_fundMe.getGoalAmount();
         uint256 fundedAmount = 1 ether;
         uint256 fundedAmountInUSD = s_fundMe.convertToUSD(fundedAmount);
+        uint256 initialContractBalanceInUSD = s_fundMe.convertToUSD(
+            s_initialContractBalance
+        );
 
         s_fundMe.fund{value: fundedAmount}();
 
-        assertEq(address(s_fundMe).balance, fundedAmount);
+        assertEq(
+            address(s_fundMe).balance,
+            fundedAmount + s_initialContractBalance
+        );
 
         uint256 newStatus = 1;
 
@@ -152,7 +168,7 @@ contract FundMe_AmountBasedTest is Test {
             abi.encodeWithSelector(
                 FundMe_AmountBased__PerformUpkeepError.selector,
                 newStatus,
-                fundedAmountInUSD,
+                fundedAmountInUSD + initialContractBalanceInUSD,
                 goalAmount
             )
         );
@@ -164,10 +180,16 @@ contract FundMe_AmountBasedTest is Test {
         uint256 goalAmount = s_fundMe.getGoalAmount();
         uint256 fundedAmount = 1 ether;
         uint256 fundedAmountInUSD = s_fundMe.convertToUSD(fundedAmount);
+        uint256 initialContractBalanceInUSD = s_fundMe.convertToUSD(
+            s_initialContractBalance
+        );
 
         s_fundMe.fund{value: fundedAmount}();
 
-        assertEq(address(s_fundMe).balance, fundedAmount);
+        assertEq(
+            address(s_fundMe).balance,
+            fundedAmount + s_initialContractBalance
+        );
 
         uint256 newStatus = 2;
 
@@ -179,7 +201,7 @@ contract FundMe_AmountBasedTest is Test {
             abi.encodeWithSelector(
                 FundMe_AmountBased__PerformUpkeepError.selector,
                 newStatus,
-                fundedAmountInUSD,
+                fundedAmountInUSD + initialContractBalanceInUSD,
                 goalAmount
             )
         );
@@ -192,6 +214,13 @@ contract FundMe_AmountBasedTest is Test {
         uint256 contractBalance = address(s_fundMe).balance;
         uint256 contractBalanceInUSD = s_fundMe.convertToUSD(contractBalance);
         FundMe.Status status = s_fundMe.getStatus();
+
+        console.log(
+            " ##############: %s, %s, %s",
+            address(s_fundMe).balance,
+            contractBalanceInUSD,
+            goalAmount
+        );
 
         vm.prank(owner);
         vm.expectRevert(
@@ -210,6 +239,9 @@ contract FundMe_AmountBasedTest is Test {
         address owner = s_fundMe.getOwner();
         uint256 fundedAmount = 1 ether;
         uint256 fundedAmountInUSD = s_fundMe.convertToUSD(fundedAmount);
+        uint256 initialContractBalanceInUSD = s_fundMe.convertToUSD(
+            s_initialContractBalance
+        );
 
         vm.expectEmit(true, true, false, false);
 
@@ -226,7 +258,7 @@ contract FundMe_AmountBasedTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(
                 FundMe__RetreiveError.selector,
-                fundedAmountInUSD
+                fundedAmountInUSD + initialContractBalanceInUSD
             )
         );
 
@@ -237,6 +269,9 @@ contract FundMe_AmountBasedTest is Test {
         address owner = s_fundMe.getOwner();
         uint256 fundedAmount = 1 ether;
         uint256 fundedAmountInUSD = s_fundMe.convertToUSD(fundedAmount);
+        uint256 initialContractBalanceInUSD = s_fundMe.convertToUSD(
+            s_initialContractBalance
+        );
 
         uint256 oldOwnerBalance = owner.balance;
 
@@ -250,13 +285,18 @@ contract FundMe_AmountBasedTest is Test {
 
         vm.expectEmit(true, false, false, false);
 
-        emit FundMe__DonationsCollected(fundedAmountInUSD);
+        emit FundMe__DonationsCollected(
+            fundedAmountInUSD + initialContractBalanceInUSD
+        );
 
         s_fundMe.performUpkeep("");
 
         FundMe.Status status = s_fundMe.getStatus();
 
-        assertEq(fundedAmount + oldOwnerBalance, owner.balance);
+        assertEq(
+            fundedAmount + oldOwnerBalance + s_initialContractBalance,
+            owner.balance
+        );
         assertEq(uint256(status), 2);
     }
 }

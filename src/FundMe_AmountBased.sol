@@ -2,6 +2,7 @@
 
 pragma solidity 0.8.7;
 
+import {console} from "forge-std/console.sol";
 import {FundMe, FundMe__RetreiveError, FundMe__GoalAmountNotMet} from "contracts/FundMe.sol";
 
 error FundMe_AmountBased__PerformUpkeepError(uint256, uint256, uint256);
@@ -43,7 +44,7 @@ contract FundMe_AmountBased is FundMe {
         uint256 contractBalanceInUSD = convertToUSD(contractBalance);
 
         if (
-            (i_goalAmount != 0 && contractBalanceInUSD < i_goalAmount) ||
+            (i_goalAmount != 0 && contractBalanceInUSD < i_goalAmount * 1e18) ||
             status == Status.Closed ||
             status == Status.Finished
         ) {
