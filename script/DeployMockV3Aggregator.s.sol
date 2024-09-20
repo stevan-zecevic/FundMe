@@ -8,10 +8,7 @@ import {Constants} from "script/NetworkConfig.s.sol";
 contract DeployMockV3Aggregator is Script, Constants {
     function run() external returns (MockV3Aggregator) {
         vm.startBroadcast();
-        MockV3Aggregator aggregator = new MockV3Aggregator(
-            PRICEFEED_DECIMALS,
-            PRICEFEED_INITIAL_ANSWER
-        );
+        MockV3Aggregator aggregator = new MockV3Aggregator(PRICEFEED_DECIMALS, PRICEFEED_INITIAL_ANSWER);
         vm.stopBroadcast();
 
         return aggregator;

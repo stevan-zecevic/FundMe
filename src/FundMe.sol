@@ -15,10 +15,7 @@ error FundMe__Fallback(bytes message);
 /// @title FundMe
 /// @notice This abstract contract is used to create fundations and collect funds from funders
 abstract contract FundMe is PriceFeed, Ownable {
-    event FundMe__Funded(
-        address indexed funderAddress,
-        uint256 indexed fundedAmount
-    );
+    event FundMe__Funded(address indexed funderAddress, uint256 indexed fundedAmount);
     event FundMe__DonationsCollected(uint256 indexed amount);
 
     enum Status {
@@ -40,12 +37,9 @@ abstract contract FundMe is PriceFeed, Ownable {
     /// @param _description The description of the fundation
     /// @param _minimumFund The minimum fund amount, in USD
     /// @param _priceFeedAddress The address of the price feed contract
-    constructor(
-        bytes32 _name,
-        bytes32 _description,
-        uint256 _minimumFund,
-        address _priceFeedAddress
-    ) PriceFeed(_priceFeedAddress) {
+    constructor(bytes32 _name, bytes32 _description, uint256 _minimumFund, address _priceFeedAddress)
+        PriceFeed(_priceFeedAddress)
+    {
         i_minimumFund = _minimumFund;
         i_name = _name;
         i_description = _description;
@@ -60,25 +54,17 @@ abstract contract FundMe is PriceFeed, Ownable {
     }
 
     /// @notice Performs upkeep on the fundation and collects the funds, should be overridden by child contracts
-    function performUpkeep(
-        bytes calldata /* performData */
-    ) public payable virtual;
+    function performUpkeep(bytes calldata /* performData */ ) public payable virtual;
 
     /// @notice Funds the fundation
     /// @dev This function is called when a funder wants to send ETH to the fundation
     function fund() public payable {
         uint256 fundedValueInUSD = convertToUSD(msg.value);
 
-        bool isMinimumFundNotMet = i_minimumFund != 0 &&
-            fundedValueInUSD < i_minimumFund * 10 ** 18;
+        bool isMinimumFundNotMet = i_minimumFund != 0 && fundedValueInUSD < i_minimumFund * 10 ** 18;
 
         if (msg.value == 0 || isMinimumFundNotMet || s_status != Status.Open) {
-            revert FundMe__FundRequirementNotMet(
-                msg.sender,
-                uint256(s_status),
-                fundedValueInUSD,
-                msg.value
-            );
+            revert FundMe__FundRequirementNotMet(msg.sender, uint256(s_status), fundedValueInUSD, msg.value);
         }
 
         emit FundMe__Funded(msg.sender, fundedValueInUSD);
@@ -120,9 +106,7 @@ abstract contract FundMe is PriceFeed, Ownable {
     }
 
     /// @notice Gets the amount of funds the given funder has sent
-    function getFundersAmount(
-        address _funderAddress
-    ) public view returns (uint256) {
+    function getFundersAmount(address _funderAddress) public view returns (uint256) {
         return s_fundersMapping[_funderAddress];
     }
 

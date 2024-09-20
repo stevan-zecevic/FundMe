@@ -15,10 +15,8 @@ contract FundMeFactoryTest is Test {
     FundMeFactory internal factory;
 
     bytes32 internal constant NAME = "Amount Based Fundation";
-    bytes32 internal constant AMOUNT_DESCRIPTION =
-        "This is amount based foundation";
-    bytes32 internal constant TIME_DESCRIPTION =
-        "This is time based foundation";
+    bytes32 internal constant AMOUNT_DESCRIPTION = "This is amount based foundation";
+    bytes32 internal constant TIME_DESCRIPTION = "This is time based foundation";
 
     function setUp() external {
         NetworkConfig networkConfig = new NetworkConfig();
@@ -38,9 +36,7 @@ contract FundMeFactoryTest is Test {
     }
 
     function testFactoryInitialValues() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(FundMeFactory__IndexOutOfBounds.selector)
-        );
+        vm.expectRevert(abi.encodeWithSelector(FundMeFactory__IndexOutOfBounds.selector));
         factory.getFundation(0);
     }
 
@@ -51,12 +47,7 @@ contract FundMeFactoryTest is Test {
         address priceFeedAddress = s_networkConfig.priceFeedAddress;
 
         address amountBasedFundation = factory.createFundation(
-            NAME,
-            AMOUNT_DESCRIPTION,
-            TIME_LIMIT,
-            GOAL_AMOUNT,
-            MINIMUM_FUND_AMOUNT,
-            priceFeedAddress
+            NAME, AMOUNT_DESCRIPTION, TIME_LIMIT, GOAL_AMOUNT, MINIMUM_FUND_AMOUNT, priceFeedAddress
         );
 
         address fundation = factory.getFundation(0);
@@ -75,12 +66,7 @@ contract FundMeFactoryTest is Test {
         address priceFeedAddress = s_networkConfig.priceFeedAddress;
 
         address timeBasedFundation = factory.createFundation(
-            NAME,
-            TIME_DESCRIPTION,
-            TIME_LIMIT,
-            GOAL_AMOUNT,
-            MINIMUM_FUND_AMOUNT,
-            priceFeedAddress
+            NAME, TIME_DESCRIPTION, TIME_LIMIT, GOAL_AMOUNT, MINIMUM_FUND_AMOUNT, priceFeedAddress
         );
 
         address[] memory fundations = factory.getFundations();

@@ -11,7 +11,7 @@ contract PriceFeed {
     }
 
     function getLatestAnswer() internal view returns (uint256) {
-        (, int answer, , , ) = dataFeed.latestRoundData();
+        (, int256 answer,,,) = dataFeed.latestRoundData();
         return uint256(answer);
     }
 

@@ -3,7 +3,8 @@
 pragma solidity 0.8.7;
 
 import {FundMe, FundMe__RetreiveError} from "contracts/FundMe.sol";
-import {AutomationCompatibleInterface} from "chainlink-toolkit/lib/chainlink-brownie-contracts/contracts/src/v0.8/interfaces/AutomationCompatibleInterface.sol";
+import {AutomationCompatibleInterface} from
+    "chainlink-toolkit/lib/chainlink-brownie-contracts/contracts/src/v0.8/interfaces/AutomationCompatibleInterface.sol";
 
 error FundMe_TimeBased__PerformUpkeepError(uint256, uint256, uint256, uint256);
 
@@ -38,12 +39,10 @@ contract FundMe_TimeBased is FundMe {
 
     /// @notice Checks if the fundation is ready to be collected
     /// @return upkeepNeeded Whether the fundation is ready to be collected
-    function checkUpkeep(
-        bytes calldata /* checkData */
-    )
+    function checkUpkeep(bytes calldata /* checkData */ )
         external
         view
-        returns (bool upkeepNeeded /* bytes memory  performData */)
+        returns (bool upkeepNeeded /* bytes memory  performData */ )
     {
         upkeepNeeded = block.timestamp - i_timestamp >= i_timeLimit;
         return upkeepNeeded;
@@ -51,28 +50,17 @@ contract FundMe_TimeBased is FundMe {
 
     /// @notice Performs upkeep on the fundation and collects the funds
     /// @dev This function is called when time limit is reached
-    function performUpkeep(
-        bytes calldata /* performData */
-    ) public payable override onlyOwner {
+    function performUpkeep(bytes calldata /* performData */ ) public payable override onlyOwner {
         Status status = getStatus();
 
-        if (
-            (block.timestamp - i_timestamp < i_timeLimit) ||
-            status == Status.Closed ||
-            status == Status.Finished
-        ) {
-            revert FundMe_TimeBased__PerformUpkeepError(
-                block.timestamp,
-                i_timestamp,
-                i_timeLimit,
-                uint256(status)
-            );
+        if ((block.timestamp - i_timestamp < i_timeLimit) || status == Status.Closed || status == Status.Finished) {
+            revert FundMe_TimeBased__PerformUpkeepError(block.timestamp, i_timestamp, i_timeLimit, uint256(status));
         }
 
         uint256 contractBalance = address(this).balance;
         uint256 contractBalanceInUSD = convertToUSD(contractBalance);
 
-        (bool sent, ) = s_owner.call{value: contractBalance}("");
+        (bool sent,) = s_owner.call{value: contractBalance}("");
 
         if (!sent) {
             revert FundMe__RetreiveError(contractBalanceInUSD);

@@ -26,21 +26,14 @@ contract NetworkConfig is Script, Constants {
 
         if (chainId == LOCAL_CHAINID) {
             vm.startBroadcast();
-            MockV3Aggregator priceFeed = new MockV3Aggregator(
-                PRICEFEED_DECIMALS,
-                PRICEFEED_INITIAL_ANSWER
-            );
+            MockV3Aggregator priceFeed = new MockV3Aggregator(PRICEFEED_DECIMALS, PRICEFEED_INITIAL_ANSWER);
             vm.stopBroadcast();
 
             config = Config({priceFeedAddress: address(priceFeed)});
         } else if (chainId == SEPOLIA_CHAINID) {
-            config = Config({
-                priceFeedAddress: 0x694AA1769357215DE4FAC081bf1f309aDC325306
-            });
+            config = Config({priceFeedAddress: 0x694AA1769357215DE4FAC081bf1f309aDC325306});
         } else if (chainId == BASE_SEPOLIA_CHAINID) {
-            config = Config({
-                priceFeedAddress: 0x4aDC67696bA383F43DD60A9e78F2C97Fbbfc7cb1
-            });
+            config = Config({priceFeedAddress: 0x4aDC67696bA383F43DD60A9e78F2C97Fbbfc7cb1});
         }
 
         return config;

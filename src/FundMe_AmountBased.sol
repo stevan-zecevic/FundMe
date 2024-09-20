@@ -35,27 +35,20 @@ contract FundMe_AmountBased is FundMe {
 
     /// @notice Performs upkeep on the fundation and collects the funds
     /// @dev This function is called when owner wants to collect the funds
-    function performUpkeep(
-        bytes calldata /* performData */
-    ) public payable override onlyOwner {
+    function performUpkeep(bytes calldata /* performData */ ) public payable override onlyOwner {
         Status status = getStatus();
 
         uint256 contractBalance = address(this).balance;
         uint256 contractBalanceInUSD = convertToUSD(contractBalance);
 
         if (
-            (i_goalAmount != 0 && contractBalanceInUSD < i_goalAmount * 1e18) ||
-            status == Status.Closed ||
-            status == Status.Finished
+            (i_goalAmount != 0 && contractBalanceInUSD < i_goalAmount * 1e18) || status == Status.Closed
+                || status == Status.Finished
         ) {
-            revert FundMe_AmountBased__PerformUpkeepError(
-                uint256(status),
-                contractBalanceInUSD,
-                i_goalAmount
-            );
+            revert FundMe_AmountBased__PerformUpkeepError(uint256(status), contractBalanceInUSD, i_goalAmount);
         }
 
-        (bool sent, ) = s_owner.call{value: contractBalance}("");
+        (bool sent,) = s_owner.call{value: contractBalance}("");
 
         if (!sent) {
             revert FundMe__RetreiveError(contractBalanceInUSD);

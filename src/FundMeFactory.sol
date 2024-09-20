@@ -30,25 +30,15 @@ contract FundMeFactory {
         address fundationAddress;
 
         if (_timeLimit != 0) {
-            FundMe_TimeBased newFundation = new FundMe_TimeBased(
-                _name,
-                _description,
-                _timeLimit,
-                _minimumFund,
-                _priceFeedAddress
-            );
+            FundMe_TimeBased newFundation =
+                new FundMe_TimeBased(_name, _description, _timeLimit, _minimumFund, _priceFeedAddress);
 
             s_fundations.push(address(newFundation));
 
             fundationAddress = address(newFundation);
         } else if (_goalAmount != 0) {
-            FundMe_AmountBased newFundation = new FundMe_AmountBased(
-                _name,
-                _description,
-                _goalAmount,
-                _minimumFund,
-                _priceFeedAddress
-            );
+            FundMe_AmountBased newFundation =
+                new FundMe_AmountBased(_name, _description, _goalAmount, _minimumFund, _priceFeedAddress);
 
             s_fundations.push(address(newFundation));
 
