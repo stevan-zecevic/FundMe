@@ -81,12 +81,6 @@ abstract contract FundMe is PriceFeed, Ownable {
             );
         }
 
-        console.log(
-            "Funded value in wei: %s",
-            msg.value,
-            address(this).balance
-        );
-
         emit FundMe__Funded(msg.sender, fundedValueInUSD);
 
         if (s_fundersMapping[msg.sender] == 0) {

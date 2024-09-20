@@ -215,13 +215,6 @@ contract FundMe_AmountBasedTest is Test {
         uint256 contractBalanceInUSD = s_fundMe.convertToUSD(contractBalance);
         FundMe.Status status = s_fundMe.getStatus();
 
-        console.log(
-            " ##############: %s, %s, %s",
-            address(s_fundMe).balance,
-            contractBalanceInUSD,
-            goalAmount
-        );
-
         vm.prank(owner);
         vm.expectRevert(
             abi.encodeWithSelector(

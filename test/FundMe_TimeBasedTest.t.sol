@@ -36,11 +36,6 @@ contract FundMe_TimeBasedTest is Test {
             1, // USD
             s_networkConfig.priceFeedAddress
         );
-        console.log("Contract address: %s", address(s_fundMe));
-        console.log(
-            "Contract balance after deployment: %s",
-            address(s_fundMe).balance
-        );
         vm.stopBroadcast();
 
         s_initialContractBalance = address(s_fundMe).balance;
@@ -148,11 +143,6 @@ contract FundMe_TimeBasedTest is Test {
     }
 
     function testRetrieveIfContractStatusIsClosed() public {
-        console.log(
-            "Contract balance before funding: %s",
-            address(s_fundMe).balance
-        );
-
         address owner = s_fundMe.getOwner();
         uint256 timeLimit = s_fundMe.getTimeLimit();
         uint256 timeStamp = s_fundMe.getTimeStamp();
